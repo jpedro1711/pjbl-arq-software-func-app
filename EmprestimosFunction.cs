@@ -17,10 +17,12 @@ namespace BibliotecaFunctionApp
     {
         private readonly ILogger<EmprestimosFunction> _logger;
         private readonly IMongoCollection<Emprestimo> collection;
+        private readonly HttpClient httpClient;
 
         public EmprestimosFunction(ILogger<EmprestimosFunction> logger)
         {
             _logger = logger;
+            httpClient = new HttpClient();
             var client = new MongoClient(System.Environment.GetEnvironmentVariable("MongoDBAtlasConnectionString"));
             var database = client.GetDatabase("biblioteca");
             collection = database.GetCollection<Emprestimo>("emprestimos");
@@ -39,11 +41,19 @@ namespace BibliotecaFunctionApp
         [Function("CreateEmprestimo")]
         public async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
-            // TODO: Use Http Client to verify if reservation exists for emprestimo
             string reqBody = await new StreamReader(req.Body).ReadToEndAsync();
             _logger.LogInformation("CREATE EMPRESTIMO - http trigger");
 
             var novoEmprestimo = JsonConvert.DeserializeObject<Emprestimo>(reqBody);
+
+            string apiUrl = "http://localhost:5175/reserva/" + novoEmprestimo.ReservaId;
+
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(apiUrl);
+
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return new BadRequestObjectResult("Reserva inválida");
+            }
 
             await collection.InsertOneAsync(novoEmprestimo);
 
