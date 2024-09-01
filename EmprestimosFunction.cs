@@ -46,14 +46,14 @@ namespace BibliotecaFunctionApp
 
             var novoEmprestimo = JsonConvert.DeserializeObject<Emprestimo>(reqBody);
 
-            string apiUrl = "http://localhost:5175/reserva/" + novoEmprestimo.ReservaId;
+            //string apiUrl = "http://localhost:5175/reserva/" + novoEmprestimo.ReservaId;
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(apiUrl);
+            //HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(apiUrl);
 
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return new BadRequestObjectResult("Reserva inválida");
-            }
+            //if (!httpResponseMessage.IsSuccessStatusCode)
+            //{
+                //return new BadRequestObjectResult("Reserva inválida");
+            //}
 
             await collection.InsertOneAsync(novoEmprestimo);
 
