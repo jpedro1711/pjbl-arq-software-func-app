@@ -1,17 +1,15 @@
 using BibliotecaFunctionApp.Models;
 using BibliotecaFunctionApp.Models.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Operations;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
 
-namespace BibliotecaFunctionApp
+namespace BibliotecaFunctionApp.Functions
 {
     public class EmprestimosFunction
     {
@@ -23,7 +21,7 @@ namespace BibliotecaFunctionApp
         {
             _logger = logger;
             httpClient = new HttpClient();
-            var client = new MongoClient(System.Environment.GetEnvironmentVariable("MongoDBAtlasConnectionString"));
+            var client = new MongoClient(Environment.GetEnvironmentVariable("MongoDBAtlasConnectionString"));
             var database = client.GetDatabase("biblioteca");
             collection = database.GetCollection<Emprestimo>("emprestimos");
         }
@@ -38,27 +36,6 @@ namespace BibliotecaFunctionApp
             return new OkObjectResult(emprestimos);
         }
 
-        [Function("CreateEmprestimo")]
-        public async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            string reqBody = await new StreamReader(req.Body).ReadToEndAsync();
-            _logger.LogInformation("CREATE EMPRESTIMO - http trigger");
-
-            var novoEmprestimo = JsonConvert.DeserializeObject<Emprestimo>(reqBody);
-
-            //string apiUrl = "http://localhost:5175/reserva/" + novoEmprestimo.ReservaId;
-
-            //HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(apiUrl);
-
-            //if (!httpResponseMessage.IsSuccessStatusCode)
-            //{
-                //return new BadRequestObjectResult("Reserva inválida");
-            //}
-
-            await collection.InsertOneAsync(novoEmprestimo);
-
-            return new OkObjectResult(novoEmprestimo);
-        }
 
         [Function("GetEmprestimoById")]
         public IActionResult GetById([HttpTrigger(AuthorizationLevel.Function, "get", Route = "emprestimos/{id}")] HttpRequest req, string id)
